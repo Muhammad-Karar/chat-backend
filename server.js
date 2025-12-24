@@ -16,8 +16,8 @@ connectDB();
 
 // Middleware
 const allowedOrigins = [
-  "http://localhost:3000",
-  "http://192.168.10.5:3000",
+  process.env.LOCALPATH,
+  process.env.HOSTPATH,
 ];
 
 app.use(
