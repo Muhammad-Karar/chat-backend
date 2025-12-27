@@ -1,11 +1,11 @@
-require("dotenv").config();
-const express = require("express");
-const http = require("http");
-const { Server } = require("socket.io");
-const cors = require("cors");
-const connectDB = require("./src/config/db");
-const apiRoutes = require("./src/routes/apiRoutes");
-const socketManager = require("./src/sockets/socketManager");
+require('dotenv').config();
+const express = require('express');
+const http = require('http');
+const { Server } = require('socket.io');
+const cors = require('cors');
+const connectDB = require('./src/config/db');
+const apiRoutes = require('./src/routes/apiRoutes');
+const socketManager = require('./src/sockets/socketManager');
 
 // Initialize App
 const app = express();
@@ -14,39 +14,57 @@ const server = http.createServer(app);
 // Connect Database
 connectDB();
 
-// =====================
-// ✅ CORS CONFIG (FIXED)
-// =====================
-const corsOptions = {
-  origin: process.env.CLIENT_URL, // deployed frontend URL
-  credentials: true,
-  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-  allowedHeaders: ["Content-Type", "Authorization"],
-};
+// CORS + preflight middleware
+const allowedOrigins = [
+  "http://localhost:3000",               // frontend local
+  "http://192.168.10.5:3000",           // local network
+  "https://real-time-caht-web.vercel.app" // deployed frontend
+];
 
-app.use(cors(corsOptions));
-app.options("*", cors(corsOptions)); // 🔴 REQUIRED FOR PREFLIGHT
+app.use((req, res, next) => {
+  const origin = req.headers.origin;
+
+  if (allowedOrigins.includes(origin)) {
+    res.setHeader("Access-Control-Allow-Origin", origin);
+  }
+
+  res.setHeader("Access-Control-Allow-Credentials", "true");
+  res.setHeader(
+    "Access-Control-Allow-Methods",
+    "GET, POST, PUT, DELETE, OPTIONS"
+  );
+  res.setHeader(
+    "Access-Control-Allow-Headers",
+    "Origin, X-Requested-With, Content-Type, Accept, Authorization"
+  );
+
+  // Handle preflight requests
+  if (req.method === "OPTIONS") {
+    return res.sendStatus(204);
+  }
+
+  next();
+});
 
 app.use(express.json());
 
 // API Routes
-app.use("/api", apiRoutes);
+app.use('/api', apiRoutes);
 
-// =====================
-// ✅ SOCKET.IO CONFIG
-// =====================
+// Socket.IO Setup
 const io = new Server(server, {
   cors: {
-    origin: process.env.CLIENT_URL,
-    credentials: true,
+    origin: allowedOrigins,
     methods: ["GET", "POST"],
+    credentials: true,
   },
 });
 
+// Initialize Socket Logic
 socketManager(io);
 
 // Start Server
 const PORT = process.env.PORT || 4000;
 server.listen(PORT, () => {
-  console.log(`🚀 Server running on port ${PORT}`);
+  console.log(`Server running on port ${PORT}`);
 });
