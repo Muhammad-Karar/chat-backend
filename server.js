@@ -18,6 +18,7 @@ connectDB();
 const allowedOrigins = [
   process.env.LOCALPATH,
   process.env.HOSTPATH,
+  process.env.CLIENT_URL,
 ];
 
 app.use(
@@ -39,9 +40,10 @@ app.use('/api', apiRoutes);
 // Socket.IO Setup
 const io = new Server(server, {
   cors: {
-    origin: "*", // Adjust this to your Next.js URL in production (e.g. http://localhost:3000)
-    methods: ["GET", "POST"]
-  }
+    origin: allowedOrigins,
+    methods: ["GET", "POST"],
+    credentials: true,
+  },
 });
 
 // Initialize Socket Logic
