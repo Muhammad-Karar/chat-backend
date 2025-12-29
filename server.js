@@ -18,7 +18,7 @@ connectDB();
 const allowedOrigins = [
   "http://localhost:3000",               // frontend local
   "http://192.168.10.5:3000",           // local network
-  "https://real-time-caht-web.vercel.app" // deployed frontend
+  "https://real-time-caht-web.onrender.com" // deployed frontend
 ];
 
 app.use((req, res, next) => {
